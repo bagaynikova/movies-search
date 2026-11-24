@@ -88,7 +88,7 @@ def load_movies(path: str | Path) -> pd.DataFrame:
 
     release_dates = pd.to_datetime(movies["release_date"], errors="coerce")
     movies["year"] = release_dates.dt.year.fillna(0).astype(int)
-    movies = movies[movies["year"].between(1, 2018)]
+    movies = movies[movies["year"].between(1, 2017)]
 
     if "id" in movies.columns:
         movies = movies.drop_duplicates(subset=["id"], keep="first")
