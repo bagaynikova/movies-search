@@ -1,5 +1,3 @@
-import pandas as pd
-
 from utils.data_loader import parse_name_list
 
 
