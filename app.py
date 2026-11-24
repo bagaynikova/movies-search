@@ -7,6 +7,7 @@ import streamlit as st
 from utils.data_loader import load_movies
 from utils.filters import filter_movies
 from utils.ranking import add_weighted_rating, get_top_movies
+from utils.visualizations import show_rating_charts
 
 st.set_page_config(
     page_title="Что посмотреть?",
@@ -252,7 +253,7 @@ def main() -> None:
         st.warning("В датасете нет записей, доступных для отображения.")
         st.stop()
 
-    st.caption(f"В каталоге: {len(movies):,} фильмов".replace(",", " "))
+    #st.caption(f"В каталоге: {len(movies):,} фильмов".replace(",", " "))
     tabs = st.tabs(["Поиск фильмов", "Рейтинг", "Аналитика", "О проекте"])
     with tabs[0]:
         search_page(movies)
