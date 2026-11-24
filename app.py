@@ -215,3 +215,54 @@ def rating_page(movies: pd.DataFrame) -> None:
             "Формула уменьшает влияние фильмов с очень малым числом оценок: "
             "их результат частично приближается к средней оценке каталога."
         )
+
+
+def analytics_page(movies: pd.DataFrame) -> None:
+    st.header("📊 Аналитика каталога")
+    st.caption("Сводные показатели рассчитываются по загруженному датасету.")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Фильмов в каталоге", f"{len(movies):,}".replace(",", " "))
+    col2.metric("Средняя оценка", f"{movies['vote_average'].mean():.2f}/10")
+    col3.metric("Медианная длительность", f"{movies.loc[movies.runtime > 0, 'runtime'].median():.0f} мин.")
+    col4.metric("Стран производства", movies["countries_list"].explode().nunique())
+
+    show_rating_charts(movies)
+
+
+def about_page(movies: pd.DataFrame) -> None:
+    st.header("ℹ️ О проекте")
+    st.markdown(
+        """
+        
+        """
+    )
+    st.write(f"Размер исходного каталога после очистки: {len(movies):,} записей.")
+
+
+def main() -> None:
+    st.title("Что посмотреть?🍿")
+    st.caption("Каталог и подбор фильмов")
+    try:
+        movies = get_movies()
+    except (FileNotFoundError, ValueError) as error:
+        st.error(f"Не удалось загрузить каталог: {error}")
+        st.stop()
+
+    if movies.empty:
+        st.warning("В датасете нет записей, доступных для отображения.")
+        st.stop()
+
+    st.caption(f"В каталоге: {len(movies):,} фильмов".replace(",", " "))
+    tabs = st.tabs(["Поиск фильмов", "Рейтинг", "Аналитика", "О проекте"])
+    with tabs[0]:
+        search_page(movies)
+    with tabs[1]:
+        rating_page(movies)
+    with tabs[2]:
+        analytics_page(movies)
+    with tabs[3]:
+        about_page(movies)
+
+
+if __name__ == "__main__":
+    main()
