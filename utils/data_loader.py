@@ -83,7 +83,7 @@ def load_movies(path: str | Path) -> pd.DataFrame:
         movies[column] = pd.to_numeric(movies[column], errors="coerce").fillna(0)
 
     movies["vote_average"] = movies["vote_average"].between(0, 10).dropna()
-    movies["vote_count"] = movies["vote_count"].between(lower=0).dropna()
+    movies = movies[movies["vote_count"] >= 0]
     movies["runtime"] = movies["runtime"].between(0, 299).dropna()
 
     release_dates = pd.to_datetime(movies["release_date"], errors="coerce")
