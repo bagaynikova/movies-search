@@ -82,14 +82,14 @@ def load_movies(path: str | Path) -> pd.DataFrame:
     for column in ("vote_average", "vote_count", "popularity", "runtime"):
         movies[column] = pd.to_numeric(movies[column], errors="coerce").fillna(0)
 
-    movies["vote_average"] = movies["vote_average"].clip(1, 10).dropna()
+    movies["vote_average"] = movies["vote_average"].clip(0, 10).dropna()
     movies["vote_count"] = movies["vote_count"].clip(lower=0).dropna()
     movies["runtime"] = movies["runtime"].clip(lower=0).dropna()
     
 
     release_dates = pd.to_datetime(movies["release_date"], errors="coerce")
     movies["year"] = release_dates.dt.year.fillna(0).astype(int)
-    movies = movies[movies["year"]<2018]
+    movies = movies[movies["year"].between(1, 2018)]
 
     if "id" in movies.columns:
         movies = movies.drop_duplicates(subset=["id"], keep="first")
