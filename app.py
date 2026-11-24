@@ -6,6 +6,7 @@ import streamlit as st
 
 from utils.data_loader import load_movies
 from utils.filters import filter_movies
+from utils.ranking import add_weighted_rating, get_top_movies
 
 st.set_page_config(
     page_title="Что посмотреть?",
@@ -139,3 +140,78 @@ def search_page(movies: pd.DataFrame) -> None:
         mime="text/csv",
     )
     show_movie_cards(filtered)
+
+def rating_page(movies: pd.DataFrame) -> None:
+    st.header("🏆 Рейтинг фильмов")
+    st.write(
+        "Рейтинг можно строить по средней оценке, взвешенной оценке, "
+        "популярности или количеству пользовательских голосов."
+    )
+
+    left, right = st.columns(2)
+    with left:
+        ranking_type = st.selectbox(
+            "Критерий рейтинга",
+            ["Взвешенный рейтинг", "Средняя оценка", "Популярность", "Количество голосов"],
+        )
+        top_count = st.selectbox("Количество фильмов в списке", [10, 20, 50])
+    with right:
+        min_votes = st.number_input(
+            "Минимальное количество голосов",
+            min_value=0,
+            max_value=100000,
+            value=100,
+            step=50,
+        )
+        genre_options = sorted({g for row in movies["genres_list"] for g in row})
+        genre = st.selectbox("Жанр", ["Все жанры"] + genre_options)
+
+    ranked = add_weighted_rating(movies, min_votes=int(min_votes))
+    top = get_top_movies(
+        ranked,
+        ranking_type=ranking_type,
+        limit=int(top_count),
+        min_votes=int(min_votes),
+        genre=genre,
+    )
+
+    if top.empty:
+        st.warning("Нет фильмов, подходящих под выбранные условия.")
+        return
+
+    st.dataframe(
+        top[
+            ["title", "year", "genre_text", "vote_average", "vote_count",
+             "weighted_rating", "popularity"]
+        ].rename(
+            columns={
+                "title": "Название",
+                "year": "Год",
+                "genre_text": "Жанры",
+                "vote_average": "Средняя оценка",
+                "vote_count": "Количество голосов",
+                "weighted_rating": "Взвешенная оценка",
+                "popularity": "Популярность",
+            }
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
+    st.download_button(
+        "📥 Скачать рейтинг (CSV)",
+        data=top.to_csv(index=False).encode("utf-8-sig"),
+        file_name="movie_rating.csv",
+        mime="text/csv",
+    )
+    show_movie_cards(top, limit=int(top_count))
+
+    with st.expander("Как рассчитывается взвешенный рейтинг?"):
+        st.latex(r"WR = \frac{v}{v+m}R + \frac{m}{v+m}C")
+        st.markdown(
+            "- **R** — средняя оценка фильма;\n"
+            "- **v** — количество голосов за фильм;\n"
+            "- **C** — средняя оценка по каталогу;\n"
+            "- **m** — минимальный порог голосов.\n\n"
+            "Формула уменьшает влияние фильмов с очень малым числом оценок: "
+            "их результат частично приближается к средней оценке каталога."
+        )
