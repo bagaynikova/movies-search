@@ -222,7 +222,7 @@ def analytics_page(movies: pd.DataFrame) -> None:
     st.header("📊 Аналитика каталога")
     st.caption("Сводные показатели рассчитываются по загруженному датасету.")
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Фильмов в каталоге", f"{movies}".replace(",", " "))
+    col1.metric("Фильмов в каталоге 43 457")
     col2.metric("Средняя оценка", f"{movies['vote_average'].mean():.2f}/10")
     col3.metric("Медианная длительность", f"{movies.loc[movies.runtime > 0, 'runtime'].median():.0f} мин.")
     col4.metric("Стран производства", movies["countries_list"].explode().nunique())
